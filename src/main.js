@@ -211,6 +211,9 @@ async function pollJobStatus() {
 
       const promptSection = document.getElementById('promptSection');
       if (promptSection && !promptSection.classList.contains('shown')) {
+        // Hide Step 1
+        document.getElementById('uploadSection').classList.add('hidden');
+
         document.getElementById('contentPreview').textContent = job.extracted_text || '(No text extracted)';
         promptSection.classList.remove('hidden');
         promptSection.classList.add('shown');
@@ -223,6 +226,9 @@ async function pollJobStatus() {
 
       const scriptSection = document.getElementById('scriptSection');
       if (!scriptSection.classList.contains('shown')) {
+        // Hide Step 2
+        document.getElementById('promptSection').classList.add('hidden');
+
         document.getElementById('scriptPreview').value = job.script;
         scriptSection.classList.remove('hidden');
         scriptSection.classList.add('shown');
