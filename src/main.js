@@ -8,12 +8,15 @@ import { StreamingAvatarApi, Configuration } from '@heygen/streaming-avatar';
 const BACKEND_URL = () => {
   const input = document.getElementById('backendUrl')?.value.trim();
   if (input) return input;
-  // If Vite env variable is set (e.g., in Vercel), use it
+
+  // VITE_BACKEND_URL is set at build-time in Vercel
   if (import.meta.env.VITE_BACKEND_URL) {
-    return import.meta.env.VITE_BACKEND_URL;
+    return import.meta.env.VITE_BACKEND_URL.replace(/\/$/, ''); // Remove trailing slash
   }
+
+  // Fallback for local development or if env var is missing
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return '';
+    console.warn('BACKEND_URL is not configured for production. Please set VITE_BACKEND_URL in Vercel.');
   }
   return 'http://localhost:3002';
 };
