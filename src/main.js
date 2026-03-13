@@ -203,6 +203,18 @@ async function pollJobStatus() {
       showIngestStatus(`Pipeline failed: ${job.error || 'Unknown error'}`, 'error');
       document.getElementById('submitBtn').disabled = false;
       document.getElementById('submitBtn').textContent = 'Retry';
+    } else if (job.stage === 'text_extracted') {
+      clearInterval(pollInterval);
+      pollInterval = null;
+      updatePipelineStep(2, 'active');
+      showIngestStatus('Text extracted. Please customize your AI prompt.', 'success');
+
+      const promptSection = document.getElementById('promptSection');
+      if (promptSection && !promptSection.classList.contains('shown')) {
+        document.getElementById('contentPreview').textContent = job.extracted_text || '(No text extracted)';
+        promptSection.classList.remove('hidden');
+        promptSection.classList.add('shown');
+      }
     } else if (job.stage === 'script_ready') {
       clearInterval(pollInterval);
       pollInterval = null;
