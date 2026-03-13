@@ -1,0 +1,17 @@
+{
+  "name": "heygen-liveavatar-frontend",
+  "version": "1.0.0",
+  "description": "HeyGen LiveAvatar Streaming Frontend",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@heygen/streaming-avatar": "^1.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

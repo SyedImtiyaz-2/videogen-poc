@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Video Studio</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0f1117;
+      --bg-surface: #1a1d27;
+      --bg-surface-2: #232736;
+      --border: #2d3148;
+      --border-hover: #4a4f6a;
+      --brand: #6366f1;
+      --brand-light: #818cf8;
+      --brand-glow: rgba(99, 102, 241, 0.15);
+      --brand-glow-strong: rgba(99, 102, 241, 0.3);
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --success: #22c55e;
+      --success-bg: rgba(34, 197, 94, 0.1);
+      --error: #ef4444;
+      --error-bg: rgba(239, 68, 68, 0.1);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.1);
+      --info: #3b82f6;
+      --info-bg: rgba(59, 130, 246, 0.1);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ─── Tab Navigation ─── */
+    .tab-nav {
+      display: flex;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .tab-btn {
+      padding: 16px 24px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      color: var(--brand-light);
+      border-bottom-color: var(--brand);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ─── Layout ─── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .section {
+      margin-bottom: 32px;
+    }
+
+    .section h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--brand-light);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── Cards ─── */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      background: var(--brand);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background: #5558e6;
+      box-shadow: 0 4px 20px var(--brand-glow);
+    }
+
+    .btn:disabled {
+      background: var(--bg-surface-2);
+      color: var(--text-dim);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-full {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-danger {
+      background: var(--error);
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--brand);
+      color: var(--brand-light);
+      background: var(--brand-glow);
+    }
+
+    /* ─── Drop Zone ─── */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--brand);
+      background: var(--brand-glow);
+      box-shadow: 0 0 30px var(--brand-glow);
+    }
+
+    .drop-zone-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--bg-surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      transition: all 0.3s;
+    }
+
+    .drop-zone:hover .drop-zone-icon,
+    .drop-zone.drag-over .drop-zone-icon {
+      background: var(--brand-glow-strong);
+    }
+
+    .drop-zone-icon svg {
+      width: 28px;
+      height: 28px;
+      stroke: var(--text-muted);
+    }
+
+    .drop-zone h3 {
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .drop-zone p {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* ─── File Card ─── */
+    .file-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .file-card.processing {
+      border-color: var(--brand);
+      box-shadow: 0 0 20px var(--brand-glow);
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .file-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--brand-glow-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .file-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--brand-light);
+    }
+
+    .file-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .file-size {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* ─── Pipeline Steps ─── */
+    .pipeline-steps {
+      display: flex;
+      gap: 0;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .pipeline-step {
+      flex: 1;
+      text-align: center;
+      padding: 16px 8px;
+      position: relative;
+    }
+
+    .pipeline-step::after {
+      content: '';
+      position: absolute;
+      top: 28px;
+      right: -50%;
+      width: 100%;
+      height: 2px;
+      background: var(--border);
+      z-index: 0;
+    }
+
+    .pipeline-step:last-child::after {
+      display: none;
+    }
+
+    .step-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-surface-2);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-dim);
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s;
+    }
+
+    .pipeline-step.active .step-circle {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: white;
+      box-shadow: 0 0 15px var(--brand-glow-strong);
+    }
+
+    .pipeline-step.done .step-circle {
+      border-color: var(--success);
+      background: var(--success);
+      color: white;
+    }
+
+    .pipeline-step.error .step-circle {
+      border-color: var(--error);
+      background: var(--error);
+      color: white;
+    }
+
+    .step-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    .pipeline-step.active .step-label {
+      color: var(--brand-light);
+    }
+
+    .pipeline-step.done .step-label {
+      color: var(--success);
+    }
+
+    /* ─── Status Bar ─── */
+    .status-bar {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .status-bar.visible {
+      display: flex;
+    }
+
+    .status-bar.info {
+      background: var(--info-bg);
+      color: var(--info);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .status-bar.success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .status-bar.error {
+      background: var(--error-bg);
+      color: var(--error);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .status-bar.warning {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    /* ─── Textareas & Content ─── */
+    .content-preview {
+      background: var(--bg-surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      max-height: 150px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+      font-family: inherit;
+    }
+
+    .script-box,
+    .prompt-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      width: 100%;
+      resize: vertical;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .script-box {
+      height: 250px;
+    }
+
+    .prompt-box {
+      height: 120px;
+      color: var(--text);
+    }
+
+    .script-box:focus,
+    .prompt-box:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--brand-glow);
+    }
+
+    /* ─── Form Groups ─── */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    /* ─── Animations & Transitions ─── */
+    .section {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 1;
+      transform: translateY(0);
+      margin-bottom: 32px;
+    }
+
+    .section.hidden {
+      display: none !important;
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    .section.shown {
+      display: block;
+      animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ─── Video Player ─── */
+    .video-wrapper {
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-wrapper video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .video-placeholder {
+      color: var(--text-dim);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    /* ─── Spinner ─── */
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--brand-glow-strong);
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+    }
+
+    /* ─── Existing streaming styles ─── */
+    .api-url {
+      background: var(--bg-surface);
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .api-url label {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .api-url input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 6px;
+      background: var(--bg-surface-2);
+      color: var(--text);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .card.selected {
+      border-color: var(--brand);
+      background: var(--brand-glow);
+    }
+
+    .card {
+      cursor: pointer;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stream-video-container {
+      margin-top: 16px;
+      background: #000;
+      border-radius: 12px;
+      padding: 20px;
+      min-height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stream-video-container video {
+      max-width: 100%;
+      max-height: 360px;
+      border-radius: 8px;
+    }
+
+    .stream-video-container.placeholder {
+      background: var(--bg-surface);
+      color: var(--text-dim);
+    }
+
+    textarea,
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      background: var(--bg-surface);
+      color: var(--text);
+      resize: vertical;
+    }
+
+    textarea:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--brand-glow);
+    }
+
+    textarea {
+      min-height: 80px;
+      margin-top: 8px;
+    }
+
+    .info-box {
+      background: var(--bg-surface);
+      border-left: 3px solid var(--brand);
+      padding: 14px 16px;
+      border-radius: 0 10px 10px 0;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .info-box strong {
+      color: var(--brand-light);
+    }
+
+    .info-box ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+
+    .info-box li {
+      margin: 4px 0;
+    }
+
+    #status {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: none;
+    }
+
+    #status.success {
+      background: var(--success-bg);
+      color: var(--success);
+      display: block;
+    }
+
+    #status.error {
+      background: var(--error-bg);
+      color: var(--error);
+      display: block;
+    }
+
+    #status.info {
+      background: var(--info-bg);
+      color: var(--info);
+      display: block;
+    }
+
+    #status.warning {
+      background: var(--warning-bg);
+      color: var(--warning);
+      display: block;
+    }
+
+    #answerSection {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    #answerText {
+      background: var(--bg-surface-2);
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+      max-height: 250px;
+      overflow-y: auto;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Tab Navigation -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="ingest-tab">Document to Video</button>
+    <button class="tab-btn" data-tab="stream-tab">Live Avatar Streaming</button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  TAB 1: DOCUMENT INGESTION PIPELINE                               -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div id="ingest-tab" class="tab-content active">
+    <div class="container">
+      <h1>Document to Video</h1>
+      <p class="subtitle">Upload a document, AI generates a script, HeyGen creates an avatar video.</p>
+
+      <!-- Pipeline Steps Indicator -->
+      <div class="pipeline-steps" id="pipelineSteps">
+        <div class="pipeline-step" data-step="1">
+          <div class="step-circle">1</div>
+          <div class="step-label">Upload</div>
+        </div>
+        <div class="pipeline-step" data-step="2">
+          <div class="step-circle">2</div>
+          <div class="step-label">Extract & Prompt</div>
+        </div>
+        <div class="pipeline-step" data-step="3">
+          <div class="step-circle">3</div>
+          <div class="step-label">Script</div>
+        </div>
+        <div class="pipeline-step" data-step="4">
+          <div class="step-circle">4</div>
+          <div class="step-label">Video</div>
+        </div>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar" id="ingestStatus"></div>
+
+      <!-- Upload Section -->
+      <div class="section" id="uploadSection">
+        <h2>Upload Document</h2>
+
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-zone-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+          </div>
+          <h3>Drop your file here</h3>
+          <p>PDF, DOCX, TXT, PPTX, CSV, MD, RTF &mdash; or click to browse</p>
+          <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.doc,.txt,.pptx,.csv,.md,.rtf">
+        </div>
+
+        <!-- Selected File Card -->
+        <div class="file-card hidden" id="fileCard">
+          <div class="file-info">
+            <div class="file-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+            </div>
+            <div>
+              <div class="file-name" id="fileName"></div>
+              <div class="file-size" id="fileSize"></div>
+            </div>
+
+            <!-- Extract & Prompt Section (NEW) -->
+            <div class="section hidden" id="promptSection">
+              <h2>Refine & Generate Script</h2>
+
+              <div class="form-group">
+                <label>Extracted Content Preview</label>
+                <div class="content-preview" id="contentPreview"></div>
+              </div>
+
+              <div class="form-group">
+                <label>AI Prompt Instructions</label>
+                <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Tell the AI how you want the
+                  video script to sound. E.g. "Make it sound exciting and professional."</p>
+                <textarea class="prompt-box"
+                  id="promptInput">You are a professional video script writer. Given document content, write a concise, engaging narration script (60-90 seconds when spoken) suitable for an AI avatar video. The script should summarize the key points clearly and engagingly. Output ONLY the script text, no stage directions or formatting.</textarea>
+              </div>
+
+              <div style="text-align: right;">
+                <button class="btn" id="generateScriptBtn" onclick="submitPromptToScript()">Generate API Script</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn" id="submitBtn" onclick="startIngestion()">Generate Video</button>
+        </div>
+      </div>
+
+      <!-- Script Preview -->
+      <div class="section hidden" id="scriptSection">
+        <h2>Generated Script</h2>
+        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;">Review and edit the script before
+          generating the video.</p>
+        <textarea class="script-box" id="scriptPreview"></textarea>
+        <div style="margin-top: 16px; text-align: right;">
+          <button class="btn" id="scriptSubmitBtn" onclick="submitScriptToVideo()">Generate Video from Script</button>
+        </div>
+      </div>
+
+      <!-- Video Result -->
+      <div class="section hidden" id="videoSection">
+        <h2>Generated Video</h2>
+        <div class="video-wrapper" id="videoWrapper">
+          <div class="video-placeholder">Video will appear here when ready...</div>
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 10px;">
+          <a class="btn hidden" id="downloadBtn" href="#" download>Download MP4</a>
+          <button class="btn btn-outline" id="newJobBtn" onclick="resetPipeline()">New Upload</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  TAB 2: LIVE AVATAR STREAMING (existing)                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div id="stream-tab" class="tab-content">
+    <div class="container">
+      <h1>Live Avatar Streaming</h1>
+      <p class="subtitle">Real-time interactive avatar streaming with HeyGen API</p>
+
+      <div class="info-box">
+        <strong>Free Tier Limits:</strong>
+        <ul>
+          <li>Resolution: 720p max</li>
+          <li>Session duration: 3 minutes max</li>
+          <li>Credits: 0.2 credits per minute</li>
+        </ul>
+      </div>
+
+      <div class="api-url">
+        <label>Backend URL</label>
+        <input type="text" id="backendUrl" value="" placeholder="Leave empty for same domain (production)">
+      </div>
+
+      <div class="section">
+        <h2>1. Select Avatar</h2>
+        <button class="btn btn-full" id="loadAvatarsBtn">Load Avatars</button>
+        <div id="avatars" class="grid"></div>
+      </div>
+
+      <div class="section">
+        <h2>2. Streaming Controls</h2>
+        <div class="controls">
+          <button class="btn" id="startBtn" disabled>Start Streaming Session</button>
+          <button class="btn btn-danger" id="stopBtn" disabled>Stop Session</button>
+        </div>
+        <div id="status"></div>
+      </div>
+
+      <div class="section">
+        <h2>3. Video Stream</h2>
+        <div id="videoContainer" class="stream-video-container placeholder">
+          <div>Video stream will appear here when session starts</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>4. Ask Question / Enter Input</h2>
+        <textarea id="textInput"
+          placeholder="Ask a question... (Will call RAG API first, then avatar speaks)">How do I build a voice agent with LiveKit?</textarea>
+        <div class="controls" style="margin-top: 10px;">
+          <button class="btn" id="speakBtn" disabled>Get Answer & Speak</button>
+        </div>
+      </div>
+
+      <div class="section hidden" id="answerSection">
+        <h2>RAG API Answer</h2>
+        <div id="answerText"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
