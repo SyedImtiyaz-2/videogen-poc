@@ -8,6 +8,10 @@ import { StreamingAvatarApi, Configuration } from '@heygen/streaming-avatar';
 const BACKEND_URL = () => {
   const input = document.getElementById('backendUrl')?.value.trim();
   if (input) return input;
+  // If Vite env variable is set (e.g., in Vercel), use it
+  if (import.meta.env.VITE_BACKEND_URL) {
+    return import.meta.env.VITE_BACKEND_URL;
+  }
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     return '';
   }
